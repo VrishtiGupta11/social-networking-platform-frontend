@@ -2,18 +2,28 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
-import 'package:social_networking/Pages/profile-page.dart';
 import 'package:social_networking/Pages/view-event-page.dart';
+import 'package:social_networking/Util/constants.dart';
+
 
 class EventsPage extends StatefulWidget {
+  static String route = '/events';
   int? userid;
-  EventsPage({Key? key, required this.userid}) : super(key: key);
+  EventsPage({Key? key, this.userid}) : super(key: key);
 
   @override
   _EventsPageState createState() => _EventsPageState();
 }
 
 class _EventsPageState extends State<EventsPage> {
+
+  bool isAllTrue = true,
+      isInterestTrue = false,
+      isCityAndInterestTrue = false,
+      isRegisteredTrue = false,
+      isCityTrue = false;
+
+  bool clear = false;
 
   Future getEvents() async{
     String eventsURL = "http://localhost:8080/api/event";
@@ -22,10 +32,36 @@ class _EventsPageState extends State<EventsPage> {
     return response.body;
   }
 
+  Future getEventsBasedOnInterest() async{
+    String eventsURL = "http://localhost:8080/api/user/${Util.user.userid}/interest/event";
+    var response = await http.get(Uri.parse(eventsURL));
+    print(response.body.length);
+    return response.body;
+  }
+
+  Future getEventsBasedOnCity() async{
+    String eventsURL = "http://localhost:8080/api/user/${Util.user.userid}/city/event";
+    var response = await http.get(Uri.parse(eventsURL));
+    print(response.body.length);
+    return response.body;
+  }
+
+  Future getEventsBasedOnCityAndInterest() async{
+    String eventsURL = "http://localhost:8080/api/user/${Util.user.userid}/city/interest/event";
+    var response = await http.get(Uri.parse(eventsURL));
+    print(response.body.length);
+    return response.body;
+  }
+
+  Future getRegisteredEvents() async{
+    String eventsURL = "http://localhost:8080/api/user/${Util.user.userid}/event";
+    var response = await http.get(Uri.parse(eventsURL));
+    print(response.body.length);
+    return response.body;
+  }
+
   parseEvents(response) {
     var mapAsData = convert.jsonDecode(response);
-    // print(mapAsData.runtimeType);
-    // print(mapAsData);
     List<Widget> tileWidgets = [];
 
     mapAsData.forEach((element) {
@@ -90,7 +126,7 @@ class _EventsPageState extends State<EventsPage> {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => ViewEventPage(userid: widget.userid, eventid: element['id']),));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ViewEventPage(userid: Util.user.userid, eventid: element['id']),));
                 },
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.deepPurpleAccent,
@@ -112,21 +148,20 @@ class _EventsPageState extends State<EventsPage> {
   @override
   Widget build(BuildContext context) {
 
-    var arg = ModalRoute.of(context)!.settings.arguments;
+    // var arg = ModalRoute.of(context)!.settings.arguments;
     // if(arg == null) {
     //   print("args null");
     // }
     // print("arg " + arg['userid'].toString());
-
     Size sized = MediaQuery.of(context).size;
     return
-    //   (widget.userid == null)
-    //   ? const Scaffold(
-    //   body: Center(
-    //     child: Text("Please Login first"),
-    //   ),
-    // )
-    //   :
+      (!Util.isLoggedIn)
+      ? const Scaffold(
+      body: Center(
+        child: Text("Please Login first"),
+      ),
+    )
+      :
     Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.grey),
@@ -145,10 +180,19 @@ class _EventsPageState extends State<EventsPage> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage(userid: widget.userid,)));
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage(userid: Util.user.userid,)));
+              Navigator.pushNamed(context, "/profile");
             },
             icon: const Icon(Icons.person),
-          )
+          ),
+          IconButton(
+            onPressed: () {
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage(userid: Util.user.userid,)));
+              Navigator.pushNamed(context, "/explore");
+            },
+            icon: const Icon(Icons.search),
+          ),
+
         ],
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -160,11 +204,19 @@ class _EventsPageState extends State<EventsPage> {
             child: Wrap(
               children: [
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    isAllTrue = true;
+                    isInterestTrue = false;
+                    isCityTrue = false;
+                    isCityAndInterestTrue = false;
+                    isRegisteredTrue = false;
+                    clear = true;
+                    setState(() {});
+                  },
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.deepPurpleAccent,
+                    backgroundColor: isAllTrue ? Colors.deepPurple : Colors.deepPurpleAccent,
                     elevation: 8,
-                    fixedSize: Size(sized.width*0.19, 0),
+                    fixedSize: Size(sized.width*0.15, 0),
                   ),
                   child: const Text(
                     'ALL',
@@ -175,11 +227,20 @@ class _EventsPageState extends State<EventsPage> {
                   width: 2,
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    isAllTrue = false;
+                    isInterestTrue = true;
+                    isCityTrue = false;
+                    isCityAndInterestTrue = false;
+                    isRegisteredTrue = false;
+                    clear = true;
+                    print("events based on Interest");
+                    setState(() {});
+                  },
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.deepPurpleAccent,
+                    backgroundColor: isInterestTrue ? Colors.deepPurple : Colors.deepPurpleAccent,
                     elevation: 8,
-                    fixedSize: Size(sized.width*0.19, 0),
+                    fixedSize: Size(sized.width*0.15, 0),
                   ),
                   child: const Text(
                     'INTEREST',
@@ -190,14 +251,22 @@ class _EventsPageState extends State<EventsPage> {
                   width: 2,
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    isAllTrue = false;
+                    isInterestTrue = false;
+                    isCityTrue = true;
+                    isCityAndInterestTrue = false;
+                    isRegisteredTrue = false;
+                    clear = true;
+                    setState(() {});
+                  },
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.deepPurpleAccent,
+                    backgroundColor: isCityTrue ? Colors.deepPurple : Colors.deepPurpleAccent,
                     elevation: 8,
-                    fixedSize: Size(sized.width*0.19, 0),
+                    fixedSize: Size(sized.width*0.15, 0),
                   ),
                   child: const Text(
-                    'CITY && INTEREST',
+                    'CITY',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -205,11 +274,42 @@ class _EventsPageState extends State<EventsPage> {
                   width: 2,
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    isAllTrue = false;
+                    isInterestTrue = false;
+                    isCityTrue = false;
+                    isCityAndInterestTrue = true;
+                    isRegisteredTrue = false;
+                    clear = true;
+                    setState(() {});
+                  },
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.deepPurpleAccent,
+                    backgroundColor: isCityAndInterestTrue ? Colors.deepPurple : Colors.deepPurpleAccent,
                     elevation: 8,
-                    fixedSize: Size(sized.width*0.19, 0),
+                    fixedSize: Size(sized.width*0.15, 0),
+                  ),
+                  child: const Text(
+                    'CITY & INTEREST',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(
+                  width: 2,
+                ),
+                TextButton(
+                  onPressed: () {
+                    isAllTrue = false;
+                    isInterestTrue = false;
+                    isCityTrue = false;
+                    isCityAndInterestTrue = false;
+                    isRegisteredTrue = true;
+                    clear = true;
+                    setState(() {});
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: isRegisteredTrue ? Colors.deepPurple : Colors.deepPurpleAccent,
+                    elevation: 8,
+                    fixedSize: Size(sized.width*0.15, 0),
                   ),
                   child: const Text(
                     'REGISTERED',
@@ -223,9 +323,17 @@ class _EventsPageState extends State<EventsPage> {
             height: sized.height*0.8,
             margin: EdgeInsets.fromLTRB(sized.width*0.1, 10, sized.width*0.1, 10),
             child: FutureBuilder(
-              future: getEvents(),
+              future: isAllTrue ? getEvents()
+                  : (isInterestTrue) ? getEventsBasedOnInterest()
+                    : (isCityTrue) ? getEventsBasedOnCity()
+                      : (isCityAndInterestTrue) ? getEventsBasedOnCityAndInterest()
+                        : (isRegisteredTrue) ? getRegisteredEvents()
+                          : getEvents(),
               builder: (context, snapshot) {
-                if(snapshot.hasData) {
+                // AsyncSnapshot<dynamic>? variable;
+                // snapshot = variable ;
+
+                if(snapshot.hasData && !clear) {
                   var list = parseEvents(snapshot.data.toString());
                   // return GridView.builder(
                   //   // shrinkWrap: true,
@@ -239,15 +347,23 @@ class _EventsPageState extends State<EventsPage> {
                   //     return list[index];
                   //   },
                   // );
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Wrap(
-                      children: list,
-                    ),
-                  );
+                  if(list.length == 0) {
+                    return Center(
+                      child: Text("No Events Found", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black38, fontSize: 25),),
+                    );
+                  }
+                  else {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Wrap(
+                        children: list,
+                      ),
+                    );
+                  }
                 }
                 else {
                   // print("No Data");
+                  clear = false;
                   return Center(
                     child: CupertinoActivityIndicator(),
                   );

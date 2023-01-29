@@ -4,6 +4,7 @@ import 'dart:convert' as convert;
 import 'package:social_networking/Util/constants.dart';
 
 class RegisterPage extends StatefulWidget {
+  static String route = '/register';
   const RegisterPage({Key? key}) : super(key: key);
 
   @override

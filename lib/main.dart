@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:social_networking/Authentication/login-page.dart';
 import 'package:social_networking/Authentication/register-page.dart';
 import 'package:social_networking/Pages/events-page.dart';
+import 'package:social_networking/Pages/explore-page.dart';
 import 'package:social_networking/Pages/profile-page.dart';
 import 'package:social_networking/Pages/splash-page.dart';
+import 'package:social_networking/Pages/view-event-page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,11 +26,13 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       scrollBehavior: NoThumbScrollBehavior().copyWith(scrollbars: false),
       routes: {
-        '/' : (context) => SplashPage(),
-        '/login': (context) => LoginPage(),
-        '/register':(context) => RegisterPage(),
-        '/events': (context) => EventsPage(userid: null,),
-        '/profile': (context) => ProfilePage(userid: null),
+        SplashPage.route : (context) => SplashPage(),
+        LoginPage.route : (context) => LoginPage(),
+        RegisterPage.route :(context) => RegisterPage(),
+        EventsPage.route : (context) => EventsPage(),
+        ProfilePage.route : (context) => ProfilePage(),
+        ExplorePage.route : (context) => ExplorePage(),
+        ViewEventPage.route : (context) => ViewEventPage(),
       },
     );
   }

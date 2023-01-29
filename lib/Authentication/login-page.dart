@@ -4,8 +4,8 @@ import 'package:social_networking/Pages/events-page.dart';
 import 'dart:convert' as convert;
 import 'package:social_networking/Util/constants.dart';
 
-
 class LoginPage extends StatefulWidget {
+  static String route = '/login';
   const LoginPage({Key? key}) : super(key: key);
 
   @override
@@ -35,7 +35,6 @@ class _LoginPageState extends State<LoginPage> {
           'password': passwordController.text.trim()
         })
     );
-    print(response.body);
     var mapAsData = convert.jsonDecode(response.body);
     if(response.statusCode == 404) {
       ShowSnackBar(context: context, message: "Invalid email or password");
@@ -44,9 +43,16 @@ class _LoginPageState extends State<LoginPage> {
       ShowSnackBar(context: context, message: "Something went wrong");
     }
     else if (response.body != null) {
-      print(mapAsData['userid']);
-      // Navigator.pushNamed(context, "/events", arguments: mapAsData['userid']);
-      Navigator.push(context, MaterialPageRoute(builder: (context) => EventsPage(userid: mapAsData['userid'],)));
+      print("userid: " + mapAsData['userid'].toString());
+      Util.isLoggedIn = true;
+      Util.user.userid = mapAsData['userid'];
+      Util.user.email = mapAsData['email'];
+      Util.user.firstName = mapAsData['firstname'];
+      Util.user.lastName = mapAsData['lastname'];
+      Util.user.city = mapAsData['city'];
+
+      Navigator.pushNamed(context, "/events");
+      // Navigator.push(context, MaterialPageRoute(builder: (context) => EventsPage(userid: mapAsData['userid'],)));
     }
   }
 

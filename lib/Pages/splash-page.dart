@@ -1,12 +1,14 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SplashPage extends StatelessWidget {
+  static String route = '/';
   const SplashPage({Key? key}) : super(key: key);
 
   navigateToHome(BuildContext context) {
     Future.delayed(Duration(seconds: 4), () {
-      Navigator.pushReplacementNamed(context, '/events');
-      // Navigator.pushReplacementNamed(context, '/login');
+      // Navigator.pushReplacementNamed(context, '/events');
+      Navigator.pushReplacementNamed(context, '/login');
     });
   }
 
@@ -19,7 +21,18 @@ class SplashPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
+            Image.asset(
+              "social-networking.png",
+              fit: BoxFit.cover,
+              height: 300,
+              width: 300,
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: CupertinoActivityIndicator(),
+                );
+              },
+            ),
+            CupertinoActivityIndicator()
           ],
         ),
       ),

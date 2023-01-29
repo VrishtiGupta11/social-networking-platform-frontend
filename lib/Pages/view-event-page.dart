@@ -2,12 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
-import 'package:social_networking/Pages/view-participants-page.dart';
+import 'package:social_networking/Pages/view-users-page.dart';
+import 'package:social_networking/Util/constants.dart';
+import 'package:sendgrid_mailer/sendgrid_mailer.dart';
+
 
 class ViewEventPage extends StatefulWidget {
+  static String route = '/event/details';
   int? userid;
   String? eventid;
-  ViewEventPage({Key? key, required this.userid, required this.eventid}) : super(key: key);
+  ViewEventPage({Key? key, this.userid, this.eventid}) : super(key: key);
 
   @override
   _ViewEventPageState createState() => _ViewEventPageState();
@@ -17,6 +21,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
 
   String? eventName;
   String? eventDescription;
+  bool isRegistered = false;
 
   Future getEvent() async{
     String interestURL = "http://localhost:8080/api/event/${widget.eventid.toString()}";
@@ -47,33 +52,69 @@ class _ViewEventPageState extends State<ViewEventPage> {
   }
 
   parseUsers(response) {
-    var list = convert.jsonDecode(response);
+    List list = convert.jsonDecode(response);
+    list.forEach((element) {
+      if(element['userid'] == Util.user.userid) {
+        isRegistered = true;
+      }
+    });
     return list;
   }
 
-  // Future registerForEvent() async {
-  //   String registerUrl = "http://localhost:8080/api/user";
-  //   var response = await http.post(Uri.parse(registerUrl),
-  //       headers: {'Content-Type': 'application/json'},
-  //       body: convert.json.encode({
-  //         'firstName': firstNameController.text.trim(),
-  //         'lastName': lastNameController.text.trim(),
-  //         'email': emailController.text.trim(),
-  //         'password': passwordController.text.trim(),
-  //         'city': cityController.text.trim()
-  //       })
-  //   );
-  //   print(response.body);
-  //   if(response.statusCode == 409) {
-  //     ShowSnackBar(context: context, message: "User already exists");
-  //   }
-  //   else if(response.statusCode == 400) {
-  //     ShowSnackBar(context: context, message: "Something went wrong");
-  //   }
-  //   else if (response.body != null) {
-  //     Navigator.pop(context);
-  //   }
+  Future registerForEvent() async {
+    String registerUrl = "http://localhost:8080/api/user/${Util.user.userid.toString()}/event";
+    var response = await http.put(Uri.parse(registerUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: convert.json.encode({
+          'eventId': widget.eventid,
+        })
+    );
+    print(response.body);
+    if(response.statusCode == 409) {
+      ShowSnackBar(context: context, message: "Event already exists");
+    }
+    else if(response.statusCode == 400) {
+      ShowSnackBar(context: context, message: "Something went wrong");
+    }
+    else if (response.body != null) {
+      ShowSnackBar(context: context, message: "Registered for event successfully");
+      Future.delayed(Duration(seconds: 1), () {
+        Navigator.pop(context);
+      });
+    }
+  }
+
+  // Future sendMail(String email) async{
+  //   String token = "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";
+  //   Map<String, String> headers = Map();
+  //   headers["Authorization"] =
+  //   "Bearer $token";
+  //   headers["Content-Type"] = "application/json";
+  //
+  //   var url = 'https://api.sendgrid.com/v3/mail/send';
+  //   var response = await http.post(Uri.parse(url),
+  //       headers: headers,
+  //       body: "{\n          \"personalizations\": [\n            {\n              \"to\": [\n                {\n                  \"email\": \"ivrishtigupta@gmail.com\"\n                },\n                {\n                  \"email\": \"ivrishtigupta@gmail.com\"\n                }\n              ]\n            }\n          ],\n          \"from\": {\n            \"email\": \"ivrishtigupta@gmail.com\"\n          },\n          \"subject\": \"Successfully Registered for the event\",\n          \"content\": [\n            {\n              \"type\": \"text\/plain\",\n              \"value\": \"New user register: $email\"\n            }\n          ]\n        }");
+  //   print('Response status: ${response.statusCode}');
+  //   print('Response body: ${response.body}');
+  //
   // }
+
+  sendMail(String emailid) async {
+
+    final mailer = Mailer('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');
+    final toAddress = Address(emailid);
+    final fromAddress = Address('temp39077@gmail.com');
+    final content = Content('text/plain', 'Hello World!');
+    final subject = 'Hello Subject!';
+    final personalization = Personalization([toAddress]);
+
+    final email =
+    Email([personalization], fromAddress, subject, content: [content]);
+    mailer.send(email).then((result) {
+      // ...
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,23 +205,36 @@ class _ViewEventPageState extends State<ViewEventPage> {
                               InkWell(
                                 child: Text("View all Participants", style: TextStyle(color: Colors.deepPurple, decoration: TextDecoration.underline),),
                                 onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => ViewParticipants(participants: list)));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => ViewUsers(usersList: list)));
                                 },
                               ),
                               SizedBox(height: 10,),
-                              TextButton(
-                                onPressed: () {
-
-                                },
-                                style: TextButton.styleFrom(
-                                  backgroundColor: Colors.deepPurpleAccent,
-                                  elevation: 8,
-                                ),
-                                child: const Text(
-                                  'REGISTER',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
+                              isRegistered
+                                  ? TextButton(
+                                      style: TextButton.styleFrom(
+                                        backgroundColor: Colors.deepPurpleAccent,
+                                        elevation: 8,
+                                      ),
+                                      onPressed: null,
+                                      child: const Text(
+                                        'REGISTERED',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    )
+                                  : TextButton(
+                                      onPressed: () {
+                                        registerForEvent();
+                                        sendMail(Util.user.email!);
+                                      },
+                                      style: TextButton.styleFrom(
+                                        backgroundColor: Colors.deepPurpleAccent,
+                                        elevation: 8,
+                                      ),
+                                      child: const Text(
+                                        'REGISTER',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
                             ],
                           );
                         }

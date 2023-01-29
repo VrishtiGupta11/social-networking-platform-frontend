@@ -1,4 +1,3 @@
-library social_networking_platform;
 import 'package:flutter/material.dart';
 import 'package:social_networking/Model/user.dart';
 
@@ -9,5 +8,7 @@ class ShowSnackBar{
   }
 }
 
-bool isLoggedIn = false;
-User? user;
+class Util {
+  static bool isLoggedIn = false;
+  static User user = User();
+}
