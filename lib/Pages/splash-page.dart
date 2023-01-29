@@ -8,7 +8,7 @@ class SplashPage extends StatelessWidget {
   navigateToHome(BuildContext context) {
     Future.delayed(Duration(seconds: 4), () {
       // Navigator.pushReplacementNamed(context, '/events');
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.popAndPushNamed(context, '/login');
     });
   }
 

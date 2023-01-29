@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
       Util.user.lastName = mapAsData['lastname'];
       Util.user.city = mapAsData['city'];
 
-      Navigator.pushNamed(context, "/events");
+      Navigator.popAndPushNamed(context, "/events");
       // Navigator.push(context, MaterialPageRoute(builder: (context) => EventsPage(userid: mapAsData['userid'],)));
     }
   }

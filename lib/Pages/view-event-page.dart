@@ -4,7 +4,6 @@ import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 import 'package:social_networking/Pages/view-users-page.dart';
 import 'package:social_networking/Util/constants.dart';
-import 'package:sendgrid_mailer/sendgrid_mailer.dart';
 
 
 class ViewEventPage extends StatefulWidget {
@@ -19,8 +18,6 @@ class ViewEventPage extends StatefulWidget {
 
 class _ViewEventPageState extends State<ViewEventPage> {
 
-  String? eventName;
-  String? eventDescription;
   bool isRegistered = false;
 
   Future getEvent() async{
@@ -84,48 +81,49 @@ class _ViewEventPageState extends State<ViewEventPage> {
     }
   }
 
-  // Future sendMail(String email) async{
-  //   String token = "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";
-  //   Map<String, String> headers = Map();
-  //   headers["Authorization"] =
-  //   "Bearer $token";
-  //   headers["Content-Type"] = "application/json";
-  //
-  //   var url = 'https://api.sendgrid.com/v3/mail/send';
-  //   var response = await http.post(Uri.parse(url),
-  //       headers: headers,
-  //       body: "{\n          \"personalizations\": [\n            {\n              \"to\": [\n                {\n                  \"email\": \"ivrishtigupta@gmail.com\"\n                },\n                {\n                  \"email\": \"ivrishtigupta@gmail.com\"\n                }\n              ]\n            }\n          ],\n          \"from\": {\n            \"email\": \"ivrishtigupta@gmail.com\"\n          },\n          \"subject\": \"Successfully Registered for the event\",\n          \"content\": [\n            {\n              \"type\": \"text\/plain\",\n              \"value\": \"New user register: $email\"\n            }\n          ]\n        }");
-  //   print('Response status: ${response.statusCode}');
-  //   print('Response body: ${response.body}');
-  //
-  // }
-
-  sendMail(String emailid) async {
-
-    final mailer = Mailer('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');
-    final toAddress = Address(emailid);
-    final fromAddress = Address('temp39077@gmail.com');
-    final content = Content('text/plain', 'Hello World!');
-    final subject = 'Hello Subject!';
-    final personalization = Personalization([toAddress]);
-
-    final email =
-    Email([personalization], fromAddress, subject, content: [content]);
-    mailer.send(email).then((result) {
-      // ...
-    });
+  Future sendMail(String eventName) async {
+    String url = "http://localhost:8080/api/mail";
+    var response = await http.post(Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: convert.json.encode({
+          'email': Util.user.email,
+          'name': "${Util.user.firstName!} ${Util.user.lastName!}",
+          'eventName': eventName,
+        })
+    );
+    print(response.body);
+    if(response.statusCode == 400) {
+      ShowSnackBar(context: context, message: "Something went wrong");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     Size sized = MediaQuery.of(context).size;
-    return
-    //   widget.userid == null ? const Scaffold(
-    //   body: Center(
-    //     child: Text("Please login first"),
-    //   ),
-    // ) :
-    Scaffold(
+    return (!Util.isLoggedIn) ? Scaffold(
+        body: Center(
+          child: Column(
+            children: [
+              Text("Please Login first", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black38, fontSize: 25),),
+              SizedBox(height: 10,),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, "/login");
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.deepPurpleAccent,
+                  elevation: 8,
+                  fixedSize: Size(sized.width*0.15, 0),
+                ),
+                child: const Text(
+                  'LOGIN',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ) : Scaffold(
         appBar: AppBar(
           iconTheme: const IconThemeData(color: Colors.grey),
           title: ShaderMask(
@@ -156,6 +154,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
           builder: (context, snapshot) {
             if(snapshot.hasData) {
               var eventMap = parseEvent(snapshot.data);
+
               return Row(
                 children: [
                   Container(
@@ -224,7 +223,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
                                   : TextButton(
                                       onPressed: () {
                                         registerForEvent();
-                                        sendMail(Util.user.email!);
+                                        sendMail(eventMap['description']['text'].substring(0, eventMap['description']['text'].indexOf(':')));
                                       },
                                       style: TextButton.styleFrom(
                                         backgroundColor: Colors.deepPurpleAccent,

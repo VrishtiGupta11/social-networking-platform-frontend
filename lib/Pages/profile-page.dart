@@ -56,12 +56,29 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     Size sized = MediaQuery.of(context).size;
-    return !Util.isLoggedIn ? const Scaffold(
+    return (!Util.isLoggedIn) ? Scaffold(
       body: Center(
-        child: Text("Please login first"),
+        child: Column(
+          children: [
+            Text("Please Login first", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black38, fontSize: 25),),
+            SizedBox(height: 10,),
+            TextButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, "/login");
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.deepPurpleAccent,
+                elevation: 8,
+              ),
+              child: const Text(
+                'LOGIN',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
       ),
-    ) :
-    Scaffold(
+    ) : Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.grey),
         title: ShaderMask(
@@ -79,10 +96,25 @@ class _ProfilePageState extends State<ProfilePage> {
         actions: [
           IconButton(
             onPressed: () {
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage(userid: Util.user.userid,)));
+              Navigator.pushNamed(context, "/explore");
+            },
+            icon: const Icon(Icons.search),
+          ),
+          IconButton(
+            onPressed: () {
               Navigator.pop(context);
             },
             icon: const Icon(Icons.home_filled),
-          )
+          ),
+          IconButton(
+            onPressed: () {
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage(userid: Util.user.userid,)));
+              Util.isLoggedIn = false;
+              Navigator.pushReplacementNamed(context, "/login");
+            },
+            icon: const Icon(Icons.logout),
+          ),
         ],
         centerTitle: true,
         backgroundColor: Colors.white,

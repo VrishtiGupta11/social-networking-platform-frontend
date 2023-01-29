@@ -57,17 +57,12 @@ class _InterestWidgetState extends State<InterestWidget> {
     }
   }
 
-
-  // List<String>? selectedInterest = [];
-  // List<int>? interestid = [];
   Map<String, int>? selectedUserInterest;
 
   @override
   Widget build(BuildContext context) {
     selectedUserInterest = widget.userInterest as Map<String, int>;
-    // print("Userid: " + widget.userid.toString());
-    // print("User Interest");
-    // print(widget.userInterest);
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

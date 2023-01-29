@@ -154,15 +154,29 @@ class _EventsPageState extends State<EventsPage> {
     // }
     // print("arg " + arg['userid'].toString());
     Size sized = MediaQuery.of(context).size;
-    return
-      (!Util.isLoggedIn)
-      ? const Scaffold(
+    return (!Util.isLoggedIn) ? Scaffold(
       body: Center(
-        child: Text("Please Login first"),
+        child: Column(
+          children: [
+            Text("Please Login first", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black38, fontSize: 25),),
+            SizedBox(height: 10,),
+            TextButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, "/login");
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.deepPurpleAccent,
+                elevation: 8,
+              ),
+              child: const Text(
+                'LOGIN',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
       ),
-    )
-      :
-    Scaffold(
+    ) : Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.grey),
         title: ShaderMask(
@@ -192,7 +206,6 @@ class _EventsPageState extends State<EventsPage> {
             },
             icon: const Icon(Icons.search),
           ),
-
         ],
         centerTitle: true,
         backgroundColor: Colors.white,
